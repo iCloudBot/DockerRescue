@@ -1,0 +1,93 @@
+name: Sync-Docker-To-Aliyun
+
+on:
+  # 定时执行
+  # workflow_dispatch:
+  # schedule: 
+  #   - cron: '14 23 * * *'
+  # 指定文件修改执行
+  push:
+    # branches:
+    #   - main
+    paths:
+      - 'docs/images.txt'
+      
+jobs:
+  sync-docker-images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+  
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-shanghai.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+  
+      - name: Set timezone
+        run: |
+          sudo cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+  
+      - name: Read images.txt and sync images
+        run: |
+          while IFS= read -r image; do
+            if [[ "$image" == *":"* ]]; then
+              image_name=$(echo "$image" | cut -d':' -f1)
+              image_tag=$(echo "$image" | cut -d':' -f2)
+            else
+              image_name=$image
+              image_tag="latest"
+            fi
+            
+            if [[ "$image" == *"/"* ]]; then
+              registry_image_name=$(echo "$image" | cut -d'/' -f2 | cut -d':' -f1)
+            else
+              registry_image_name=$image_name
+            fi
+            
+            acr_image_path="registry.cn-shanghai.aliyuncs.com/dockerip/$registry_image_name:$image_tag"
+            echo -n "<h3 style='color: #0074D9;'>↪ $acr_image_path</h3>" >> messages.html
+  
+            docker pull "$image"
+            docker tag "$image" "$acr_image_path"
+            docker push "$acr_image_path"
+            docker rmi -f "$image" "$acr_image_path"
+          done < docs/images.txt
+          docker system prune -a -f
+          
+      - name: Set email messages
+        id: get_messages
+        run: echo "::set-output name=messages::$(cat messages.html)"
+  
+      - name: Check email file existence and content
+        id: check_email_file
+        run: |
+          if [[ -s docs/email.txt ]]; then
+            echo "::set-output name=exists::true"
+            echo "::set-output name=recipients::$(cat docs/email.txt)"
+          else
+            echo "::set-output name=exists::false"
+          fi
+  
+      - name: Send notification email
+        if: steps.check_email_file.outputs.exists == 'true'
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.163.com
+          server_port: 465
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Docker镜像同步完成✌，请查看以下镜像地址：
+          body: |
+            <!DOCTYPE html>
+            <html>
+              <body>
+                ${{ steps.get_messages.outputs.messages }}
+              </body>
+            </html>
+          to: ${{ steps.check_email_file.outputs.recipients }}
+          from: 👏 GitHub Actions - No Reply
+          content_type: text/html
