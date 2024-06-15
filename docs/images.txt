@@ -1,2 +1,2 @@
-nginx
-mysql:5.7
+redis
+mysql:8.0
