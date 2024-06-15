@@ -1,2 +1,4 @@
-redis
-mysql:8.0
+nginx
+alpine:latest
+python:3-slim
+adguard/adguardhome
