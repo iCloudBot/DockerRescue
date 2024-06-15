@@ -1,2 +1,1 @@
-nginx
-mysql:5.7
+redis
