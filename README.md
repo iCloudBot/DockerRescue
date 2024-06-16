@@ -8,7 +8,8 @@
 
 - **自动同步镜像：** 流水线任务根据 **`docs/images.txt`** 文件中的镜像列表，自动将 Docker 镜像同步到阿里云 ACR。
 - **定时触发或文件修改触发：** 可以通过定时任务或者在提交时修改了 **`docs/images.txt`** 来触发流水线。
-- **邮件通知：** 可选功能，流水线执行完成后，发送同步结果，通知指定的收件人。
+- **指定镜像架构拉取：**可选功能，创建 **`docs/platform.txt`** 同步指定系统的镜像。
+- **邮件通知：** 可选功能，流水线执行完成后，创建 **`docs/email.txt`** 发送同步结果，通知指定的收件人。
 
 ## 2 使用方法
 
@@ -52,34 +53,61 @@ adguard/adguardhome
 python:3-slim
 ```
 
-### 2.4 运行流水线
+同步完成后，有镜像前缀空间的，将会被删除，例如 **`adguard/adguardhome`** → **`adguardhome`** ，示例如下：
+
+```makefile
+registry.cn-shanghai.aliyuncs.com/dockerip/nginx:latest
+registry.cn-shanghai.aliyuncs.com/dockerip/adguardhome:latest
+registry.cn-shanghai.aliyuncs.com/dockerip/python:3-slim
+```
+
+### 2.4 指定镜像系统架构 
+
+默认 **`docs/platform.txt`** 文件不存在时，镜像的架构为 **`amd64`** ，同步完成后的镜像不带系统架构名称。
+
+如果创建了 **`docs/platform.txt`** 文件（**仅支持填写单个架构**），并且填写系统架构，例如： **`386`** **`amd64`** **`arm64`** **`arm/v5`** **`arm/v7`** ，将在镜像名称后加上系统架构名称，示例如下：
+
+```makefile
+registry.cn-shanghai.aliyuncs.com/dockerip/redis-arm-v5:latest
+registry.cn-shanghai.aliyuncs.com/dockerip/nginx-arm64:latest
+```
+
+### 2.5 运行流水线
 
 每次提交或定时触发后，GitHub Actions 将自动运行流水线。你可以在 Actions 标签页查看流水线的执行情况和日志。
 
-### 2.5 查看同步结果
+### 2.6 查看同步结果
 
-如果设置了邮件通知，当流水线执行完成后，将会发送邮件到指定的收件人，包含同步完成的镜像地址列表。
+如果创建了 **`docs/email.txt`** 文件（**仅支持填写单个邮箱地址**），并且填写接受人的邮箱地址，当流水线执行完成后，将会发送邮件到指定的收件人，包含同步完成的镜像地址列表。
 
-
+```makefile
+cleverest@qq.com
+```
 
 ## 3 推荐使用
 
-使用口接口请求，主要作用是为打不开 **GitHub** 的小伙伴提供一个便捷的方式，随时随地来同步 Docker 镜像。
+使用接口请求，主要作用是为打不开 **GitHub** 的小伙伴提供一个便捷的方式，随时随地来同步 Docker 镜像。
 
 ### 3.1 使用示例
 
 ```makefile
-# 不接收邮件通知请求如下：
+# 1.不接收邮件通知，请求如下：
 https://cr.gitool.cn:6443/api?image_names=镜像地址1,镜像地址2,镜像地址3
 
-# 接收邮件通知，请求如下：
+# 2.不接收邮件通知请求，并且指定镜像架构，请求如下：
+https://cr.gitool.cn:6443/api?image_names=镜像地址1,镜像地址2,镜像地址3&arch=系统架构(arm64、arm/v7)
+
+# 3.接收邮件通知，请求如下：
 https://cr.gitool.cn:6443/api?image_names=镜像地址1,镜像地址2,镜像地址3&email=你的邮箱
+
+# 4.接收邮件通知，并且指定镜像架构，请求如下：
+https://cr.gitool.cn:6443/api?image_names=镜像地址1,镜像地址2,镜像地址3&arch=arm/v7&email=你的邮箱
 ```
 
 > 终端使用 **`curl`** 请求
 
 ```bash
-curl https://cr.gitool.cn:6443/api?image_names=nginx,alpine:latest,python:3-slim,adguard/adguardhome&email=cleverest@qq.com
+curl https://cr.gitool.cn:6443/api?image_names=nginx,alpine:latest,python:3-slim,adguard/adguardhome&arch=arm64&email=cleverest@qq.com
 ```
 
 ![](./docs/imgsrc/curl_get.png)
@@ -103,6 +131,12 @@ curl https://cr.gitool.cn:6443/api?image_names=nginx,alpine:latest,python:3-slim
   - 示例值：**`nginx,alpine:latest,python:3-slim,adguard/adguardhome`**
   - 解释：这个参数可以包含镜像名和标签（如 **`alpine:latest`**），亦可不包含镜像标签（如 **`adguard/adguardhome`**），不含标签时，默认为 **`latest`**
 
+- **`arch=` 参数**:
+
+  指定镜像的系统架构。
+
+  - 示例值： **`386`** **`amd64`** **`arm64`** **`arm/v5`** **`arm/v7`** 
+
 - **`email=` 参数**:
 
   指定接收通知的邮箱地址。
@@ -113,7 +147,7 @@ curl https://cr.gitool.cn:6443/api?image_names=nginx,alpine:latest,python:3-slim
 ## 4 注意事项
 
 - 确保 **`docs/images.txt`** 中的镜像名与标签是正确的，并且已经存在于 Docker Hub 或其他可以访问的 Docker Registry。
-- 对于Api接口 **`image_names`**  **`email`** 参数，确保镜像名称、镜像标签以及邮箱的格式正确，以免导致请求无法正确处理。
+- 对于Api接口 **`image_names`** **`arch`** **`email`** 参数，确保镜像名称、镜像标签、系统架构以及邮箱的格式正确，以免导致请求无法正确处理。
 - 请勿恶意滥用，谢谢。
 
 ------

@@ -31,6 +31,19 @@ jobs:
         run: |
           sudo cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
   
+      - name: Check platform file existence
+        id: check_platform_file
+        run: |
+          if [[ -s docs/platform.txt ]]; then
+            echo "plf_exists=true" >> $GITHUB_ENV
+            arch=$(cat docs/platform.txt)
+            echo "arch=$arch" >> $GITHUB_ENV
+            arch_name=$(echo "$arch" | tr '/' '-')
+            echo "arch_name=$arch_name" >> $GITHUB_ENV
+          else
+            echo "plf_exists=false" >> $GITHUB_ENV
+          fi
+
       - name: Read images.txt and sync images
         run: |
           while IFS= read -r image; do
@@ -48,7 +61,13 @@ jobs:
               registry_image_name=$image_name
             fi
             
-            acr_image_path="registry.cn-shanghai.aliyuncs.com/dockerip/$registry_image_name:$image_tag"
+            if [[ ${{ env.plf_exists }} == "true" ]]; then
+              acr_image_path="registry.cn-shanghai.aliyuncs.com/dockerip/$registry_image_name-${{ env.arch_name }}:$image_tag"
+              docker pull --platform linux/${{ env.arch }} "$image"
+            else
+              acr_image_path="registry.cn-shanghai.aliyuncs.com/dockerip/$registry_image_name:$image_tag"
+              docker pull "$image"
+            fi
             echo -n "<h3 style='color: #0074D9;'>↪ $acr_image_path</h3>" >> messages.html
   
             docker pull "$image"
