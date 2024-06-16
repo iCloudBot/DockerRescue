@@ -1,4 +1,3 @@
-nginx
-alpine:latest
-python:3-slim
-adguard/adguardhome
+镜像地址1
+镜像地址2
+镜像地址3
