@@ -1,0 +1,12 @@
+services:
+  adguardhome:
+    image: registry.cn-chengdu.aliyuncs.com/dockerip/github-flask-api
+    container_name: github-flask-api
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    environment:
+      REPO_OWNER: iCloudBot
+      REPO_NAME: DockerRescue
+      BRANCH_NAME: main
+      GITHUB_TOKEN: ghp_************************
