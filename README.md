@@ -8,7 +8,7 @@
 
 - **自动同步镜像：** 流水线任务根据 **`docs/images.txt`** 文件中的镜像列表，自动将 Docker 镜像同步到阿里云 ACR。
 - **定时触发或文件修改触发：** 可以通过定时任务或者在提交时修改了 **`docs/images.txt`** 来触发流水线。
-- **指定镜像架构拉取：**可选功能，创建 **`docs/platform.txt`** 同步指定系统的镜像。
+- **指定镜像架构拉取：** 可选功能，创建 **`docs/platform.txt`** 同步指定系统的镜像。
 - **邮件通知：** 可选功能，流水线执行完成后，创建 **`docs/email.txt`** 发送同步结果，通知指定的收件人。
 
 ## 2 使用方法
@@ -42,6 +42,8 @@ on:
 
 - **`ACR_USERNAME`**  和 **`ACR_PASSWORD`**: 阿里云容器镜像服务的用户名和密码。
 - **`SMTP_USERNAME`** 和 **`SMTP_PASSWORD`**: 用于发送通知邮件的 SMTP 服务器的用户名和密码（授权码）。
+
+在 **`.github/workflows/sync.yml`** 文件中，修改 **`registry.cn-shanghai.aliyuncs.com/dockerip`** 为你自己的镜像仓库地址，阿里镜像服务注册使用，请移步👉：[阿里云镜像服务（ACR）注册使用](https://github.com/iCloudBot/DockerRescue/tree/main/docs#%E9%98%BF%E9%87%8C%E4%BA%91%E9%95%9C%E5%83%8F%E6%9C%8D%E5%8A%A1acr%E6%B3%A8%E5%86%8C%E4%BD%BF%E7%94%A8)
 
 ### 2.3 修改镜像列表
 
