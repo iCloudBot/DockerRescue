@@ -1,6 +1,6 @@
 services:
   adguardhome:
-    image: registry.cn-chengdu.aliyuncs.com/dockerip/github-flask-api
+    image: registry.cn-shanghai.aliyuncs.com/sharespace/github-flask-api
     container_name: github-flask-api
     restart: unless-stopped
     ports:

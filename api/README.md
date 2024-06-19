@@ -12,7 +12,7 @@ docker run -d --name github-flask-api \
     -e REPO_NAME="DockerRescue" \
     -e GITHUB_TOKEN="ghp_***********************" \
     -e BRANCH_NAME="main" \
-    registry.cn-chengdu.aliyuncs.com/dockerip/github-flask-api
+    registry.cn-shanghai.aliyuncs.com/sharespace/github-flask-api
 ```
 
 ```yaml
@@ -20,7 +20,7 @@ docker run -d --name github-flask-api \
 cat > docker-compose.yml <<EOF
 services:
   adguardhome:
-    image: registry.cn-chengdu.aliyuncs.com/dockerip/github-flask-api
+    image: registry.cn-shanghai.aliyuncs.com/sharespace/github-flask-api
     container_name: github-flask-api
     restart: unless-stopped
     ports:
