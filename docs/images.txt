@@ -1,1 +1,4 @@
-
+nginx
+alpine:latest
+python:3-slim
+adguard/adguardhome
