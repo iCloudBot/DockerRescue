@@ -7,7 +7,7 @@
 
 ```bash
 docker run -d --name github-flask-api \
-	-p 8088:80 \
+    -p 8088:80 \
     -e REPO_OWNER="iCloudBot" \
     -e REPO_NAME="DockerRescue" \
     -e GITHUB_TOKEN="ghp_***********************" \
