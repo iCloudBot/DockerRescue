@@ -2,7 +2,10 @@
 let hub_host = 'registry-1.docker.io'
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io'
+// 自定义的工作服务器地址
+let workers_url = 'https://你的域名'
 
+let 屏蔽爬虫UA = ['netcraft'];
 
 // 根据主机名选择对应的上游地址
 function routeByHosts(host) {
@@ -15,6 +18,7 @@ function routeByHosts(host) {
 		"k8s": "registry.k8s.io",
 		"ghcr": "ghcr.io",
 		"cloudsmith": "docker.cloudsmith.io",
+		"nvcr": "nvcr.io",
 		
 		// 测试环境
 		"test": "registry-1.docker.io",
@@ -101,6 +105,9 @@ export default {
 		const getReqHeader = (key) => request.headers.get(key); // 获取请求头
 
 		let url = new URL(request.url); // 解析请求URL
+		const userAgentHeader = request.headers.get('User-Agent');
+		const userAgent = userAgentHeader ? userAgentHeader.toLowerCase() : "null";
+		if (env.UA) 屏蔽爬虫UA = 屏蔽爬虫UA.concat(await ADD(env.UA));
 		workers_url = `https://${url.hostname}`;
 		const pathname = url.pathname;
 		const hostname = url.searchParams.get('hubhost') || url.hostname; 
@@ -110,6 +117,15 @@ export default {
 		const fakePage = checkHost[1];
 		console.log(`域名头部: ${hostTop}\n反代地址: ${hub_host}\n伪装首页: ${fakePage}`);
 		const isUuid = isUUID(pathname.split('/')[1].split('/')[0]);
+		
+		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0){
+			//首页改成一个nginx伪装页
+			return new Response(await nginx(), {
+				headers: {
+					'Content-Type': 'text/html; charset=UTF-8',
+				},
+			});
+		}
 		
 		const conditions = [
 			isUuid,
@@ -312,4 +328,14 @@ async function proxy(urlObj, reqInit, rawLen) {
 		status,
 		headers: resHdrNew
 	})
+}
+
+async function ADD(envadd) {
+	var addtext = envadd.replace(/[	 |"'\r\n]+/g, ',').replace(/,+/g, ',');	// 将空格、双引号、单引号和换行符替换为逗号
+	//console.log(addtext);
+	if (addtext.charAt(0) == ',') addtext = addtext.slice(1);
+	if (addtext.charAt(addtext.length -1) == ',') addtext = addtext.slice(0, addtext.length - 1);
+	const add = addtext.split(',');
+	//console.log(add);
+	return add ;
 }
