@@ -4,7 +4,7 @@
 
 支持 **`linux/386`** **`linux/amd64`** **`linux/arm64`** **`linux/arm/v6`** **`linux/arm/v7`**  架构的Docker部署，前提是服务器能够使用 **魔法(代理梯子)** 的情况下实施。
 
-B站频道，请移步👉：[演示视频](https://www.bilibili.com/video/BV1QhgqeCE61/) 
+B站频道，请移步👉：[演示视频](https://www.bilibili.com/video/BV19J81eQEqC/)
 
 部署方案1： **`Render`** 部署，请移步👉：[教程链接](https://mp.weixin.qq.com/s/dmlP_lyf6YElgnnpkOEfRw)
 
