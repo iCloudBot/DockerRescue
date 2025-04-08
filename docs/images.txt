@@ -1,1 +1,2 @@
-ghcr.io/home-assistant/home-assistant:stable
+mysql:5.7
+tomcat:9.0.102-jdk8
